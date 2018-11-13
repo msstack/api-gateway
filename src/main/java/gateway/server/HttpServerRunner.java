@@ -1,7 +1,6 @@
 package gateway.server;
 
-import gateway.kafka.CmdListener;
-import gateway.kafka.KafkaConsumer;
+import gateway.kafka.KafkaConsumerService;
 import gateway.query.handler.QueryResponseReceiver;
 import gateway.util.ReadAPIdoc;
 import io.netty.bootstrap.ServerBootstrap;
@@ -13,6 +12,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
 import java.util.ArrayList;
+import java.util.concurrent.Executors;
 
 //import io.netty.handler.ssl.SslContext;
 //import io.netty.handler.ssl.SslContextBuilder;
@@ -34,12 +34,20 @@ public class HttpServerRunner {
 
         urls = ReadAPIdoc.getInstance().getEndPoints("/home/gavindya/Desktop/FYP/apigateway/src/main/resources/input.txt");
         int port = 8080;
+        System.out.println("api read");
         //Register Query Responser in CmdListener
-        CmdListener longRunningTask = new CmdListener();
-        longRunningTask.setQueryOnCompleteListener(QueryResponseReceiver.getInstance());
-        longRunningTask.start();
 
-        System.out.println("cmd line started");
+        KafkaConsumerService kafkaConsumerService = new KafkaConsumerService();
+        kafkaConsumerService.setQueryOnCompleteListener(QueryResponseReceiver.getInstance());
+//        kafkaConsumerService.start();
+
+        Executors.newSingleThreadExecutor().submit(kafkaConsumerService::start);
+
+//        CmdListener cmdListener = new CmdListener();
+//        cmdListener.setQueryOnCompleteListener(QueryResponseReceiver.getInstance());
+//        Executors.newSingleThreadExecutor().submit(cmdListener::start);
+
+        System.out.println("Kafka Consumer started");
 
 //        KafkaConsumer.getInstance().setQueryOnCompleteListener(QueryResponseReceiver.getInstance());
 

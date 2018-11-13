@@ -27,6 +27,8 @@ public class CmdListener extends Thread {
             Optional<ChannelHandlerContext> context;
             context = RequestCache.getInstance().getQueryRequestor(String.valueOf(key));
             //Record is a RESPONSE for a QUERY
+            System.out.println("RESPONSE RECEIVED");
+            System.out.println(context.isPresent());
             context.ifPresent(channelHandlerContext ->
                     queryOnCompleteListener.onComplete(channelHandlerContext, value));
         }

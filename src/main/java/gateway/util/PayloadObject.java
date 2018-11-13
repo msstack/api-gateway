@@ -17,25 +17,36 @@ public class PayloadObject {
      *
      * */
     private String type;
-    private String reference_id;
+//    private String reference_id;
+    private String entity_id;
     private String payload;
     private Map<String, Object> meta;
 
     public PayloadObject(HttpMethod httpMethod, String path) {
-
-        this.reference_id = IDgenerator.getInstance().getUniqueID();
-        this.type = MessageType.REQUEST.toString();
+        String reference_id = IDgenerator.getInstance().getUniqueID();
         this.meta = new HashMap<>();
         this.meta.put("httpMethod", httpMethod.toString());
+        if (httpMethod.name().equalsIgnoreCase("GET")) {
+            this.type = RequestType.QUERY.toString();
+        } else {
+            this.type = RequestType.COMMAND.toString();
+        }
         this.meta.put("path", path);
+        this.meta.put("flow_id", reference_id);
     }
+
 
     public String getType() {
         return type;
     }
 
-    public String getReference_id() {
-        return reference_id;
+    public String getEntity_id() {
+        return entity_id;
+    }
+
+    public PayloadObject setEntity_id(String entity_id) {
+        this.entity_id = entity_id;
+        return this;
     }
 
     public String getPayload() {
@@ -63,7 +74,7 @@ public class PayloadObject {
 
     public PayloadObject setHeaders(List<Map.Entry<String, String>> headers) {
         //        setMeta("headers", headers);
-        headers.stream().forEach(header->setMeta(header.getKey(),header.getValue()));
+        headers.stream().forEach(header -> setMeta(header.getKey(), header.getValue()));
         return this;
     }
 
@@ -96,7 +107,7 @@ public class PayloadObject {
     public String toString() {
         return "PayloadObject{" +
                 "type='" + type + '\'' +
-                ", reference_id='" + reference_id + '\'' +
+                ", reference_id='" + meta.get("flow_id") + '\'' +
                 ", payload='" + payload + '\'' +
                 ", meta=" + meta +
                 '}';

@@ -30,6 +30,7 @@ public class RequestCache {
         queryRequests.put(requestID,context);
         System.out.println(requestID);
         System.out.println(context.toString());
+        System.out.println("saved queried");
     }
 
     public void saveCommandRequest(String requestID, ChannelHandlerContext context){

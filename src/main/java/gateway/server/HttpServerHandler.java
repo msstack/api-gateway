@@ -1,9 +1,11 @@
 package gateway.server;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import gateway.command.handler.PayloadHandler;
+import gateway.query.handler.QueryHandler;
+import gateway.util.JsonSerializer;
 import gateway.util.RequestValidator;
 import gateway.util.RequestValidatorImpl;
-import gateway.query.handler.QueryHandler;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,6 +21,9 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
+    //ToDo plug the request validator here
+    RequestValidator requestValidator = new RequestValidatorImpl();
+
     private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
         FullHttpResponse response = new DefaultFullHttpResponse(
                 HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status + "\r\n", CharsetUtil.UTF_8));
@@ -30,7 +35,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
         try {
-//            msg.retain(); //since reference count is decremented
+            msg.retain(); //since reference count is decremented
 
             Optional<String[]> matchingUrlDef = HttpServerRunner.urls.stream().filter(url ->
                     (url[0].equals(msg.method().name()) && url[1].equals(new QueryStringDecoder(msg.uri()).path()))).findFirst();
@@ -48,12 +53,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                         System.out.println("Authentication REQUIRED but header NOT present");
                         //ToDo is this really a BAD_REQ??
                         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
-                        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
+                        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plailn");
                         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
                     } else {
-
-                        //ToDo plug the request validator here
-                        RequestValidator requestValidator = new RequestValidatorImpl();
 
                         Boolean isValidated = requestValidator.validateRequest(authenticationHeaderValueBuilder.toString());
 //                            System.out.println("Authentication header present");
@@ -113,15 +115,21 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
     private void addCommandHandler(ChannelHandlerContext ctx, FullHttpRequest msg) {
 
-        //Send 200 OK ack to the client
-        sendOK(ctx);
+        JsonNode msgJson = JsonSerializer.toJsonObject(msg.content().toString(CharsetUtil.UTF_8));
 
-        SimpleChannelInboundHandler handler = new PayloadHandler();
-        ctx.pipeline().addLast(handler);
-        try {
-            handler.channelRead(ctx, msg);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (msgJson.get("id") != null) {
+            //Send 200 OK ack to the client
+            sendOK(ctx);
+
+            SimpleChannelInboundHandler handler = new PayloadHandler();
+            ctx.pipeline().addLast(handler);
+            try {
+                handler.channelRead(ctx, msg);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            sendExpectationFailed(ctx);
         }
     }
 
@@ -131,5 +139,14 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
+    private void sendExpectationFailed(ChannelHandlerContext ctx) {
+        String queryResponseString = "Entitiy ID is not present";
+        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
+                HttpResponseStatus.EXPECTATION_FAILED,
+                Unpooled.copiedBuffer(queryResponseString, CharsetUtil.UTF_8));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain")
+                .set(HttpHeaderNames.CONTENT_LENGTH, queryResponseString.length());
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
 
 }

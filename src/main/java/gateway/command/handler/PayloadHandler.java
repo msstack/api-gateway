@@ -1,7 +1,8 @@
 package gateway.command.handler;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import gateway.cache.RequestCache;
-import gateway.kafka.KafkaProducer;
+import gateway.kafka.KafkaProducerService;
 import gateway.server.HttpServerRunner;
 import gateway.util.JsonSerializer;
 import gateway.util.PayloadObject;
@@ -36,6 +37,8 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
             if (msg != null) {
                 String msgContent = msg.content().toString(CharsetUtil.UTF_8);
 
+                JsonNode msgJson = JsonSerializer.toJsonObject(msgContent);
+
                 HttpMethod httpMethod = msg.method();
                 QueryStringDecoder decoder = new QueryStringDecoder(msg.uri());
                 String uri = decoder.uri();  //path with params
@@ -43,10 +46,10 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 Map<String, List<String>> params = decoder.parameters();
                 List<Map.Entry<String, String>> headers = msg.headers().entries();
 
-
                 PayloadObject payloadObject = new PayloadObject(httpMethod, path);
+                payloadObject.setEntity_id(msgJson.get("id").asText());
 
-                RequestCache.getInstance().saveCommandRequest(payloadObject.getReference_id(),ctx);
+//                RequestCache.getInstance().saveCommandRequest(payloadObject.getFlow_id(),ctx);
 
                 payloadObject.setParams(params)
                         .setUri(uri)
@@ -71,7 +74,11 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                     System.out.println(requestMessage.get());
 
                     //ToDo send to the Kafka Queue
-                    KafkaProducer.getInstance().queue(requestMessage.get());
+
+                    KafkaProducerService.getInstance().publish(
+                            /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
+                            /*ENTITY_ID*/String.valueOf(payloadObject.getEntity_id()),
+                            /*REQUEST_MSG*/requestMessage.get());
                 }
             }
         } catch (Exception e) {
