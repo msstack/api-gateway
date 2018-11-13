@@ -44,7 +44,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                 //validate=true is the 5th item
                 if (matchingUrlDef.get()[4].split("=")[1].equals("true")) {
                     Optional<Map.Entry<String, String>> authenticationHeader = msg.headers().entries().stream()
-                            .filter(h -> h.getKey().equals("authentication")).findFirst();
+                            .filter(h -> h.getKey().equals("Authorization")).findFirst();
 
                     StringBuilder authenticationHeaderValueBuilder = new StringBuilder();
                     authenticationHeader.ifPresent(h -> authenticationHeaderValueBuilder.append(h.getValue()));

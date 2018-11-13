@@ -34,8 +34,6 @@ public class HttpServerRunner {
 
         urls = ReadAPIdoc.getInstance().getEndPoints("/home/gavindya/Desktop/FYP/apigateway/src/main/resources/input.txt");
         int port = 8080;
-        System.out.println("api read");
-        //Register Query Responser in CmdListener
 
         KafkaConsumerService kafkaConsumerService = new KafkaConsumerService();
         kafkaConsumerService.setQueryOnCompleteListener(QueryResponseReceiver.getInstance());

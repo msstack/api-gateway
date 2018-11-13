@@ -16,36 +16,49 @@ public class PayloadObject {
      * payload : "string"
      *
      * */
-    private String type;
-//    private String reference_id;
-    private String entity_id;
+//    private String type;
+    //    private String reference_id;
+//    private String entity_id;
     private String payload;
+    private String tag;
     private Map<String, Object> meta;
 
-    public PayloadObject(HttpMethod httpMethod, String path) {
+//    public PayloadObject(HttpMethod httpMethod, String path) {
+//        String reference_id = IDgenerator.getInstance().getUniqueID();
+//        this.meta = new HashMap<>();
+//        this.meta.put("httpMethod", httpMethod.toString());
+//        if (httpMethod.name().equalsIgnoreCase("GET")) {
+//            this.meta.put("type", RequestType.QUERY.toString());
+//        } else {
+//            this.meta.put("type", RequestType.COMMAND.toString());
+//        }
+//        this.meta.put("path", path);
+//        this.meta.put("flow_id", reference_id);
+//    }
+
+    public PayloadObject(HttpMethod httpMethod) {
         String reference_id = IDgenerator.getInstance().getUniqueID();
         this.meta = new HashMap<>();
-        this.meta.put("httpMethod", httpMethod.toString());
         if (httpMethod.name().equalsIgnoreCase("GET")) {
-            this.type = RequestType.QUERY.toString();
+            this.meta.put("type", RequestType.QUERY.toString());
         } else {
-            this.type = RequestType.COMMAND.toString();
+            this.meta.put("type", RequestType.COMMAND.toString());
         }
-        this.meta.put("path", path);
         this.meta.put("flow_id", reference_id);
     }
 
 
-    public String getType() {
-        return type;
-    }
-
-    public String getEntity_id() {
-        return entity_id;
-    }
-
     public PayloadObject setEntity_id(String entity_id) {
-        this.entity_id = entity_id;
+        setMeta("entity_id", entity_id);
+        return this;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public PayloadObject setTag(String tag) {
+        this.tag = tag;
         return this;
     }
 
@@ -74,7 +87,12 @@ public class PayloadObject {
 
     public PayloadObject setHeaders(List<Map.Entry<String, String>> headers) {
         //        setMeta("headers", headers);
-        headers.stream().forEach(header -> setMeta(header.getKey(), header.getValue()));
+        headers.stream()
+                .filter(h -> h.getKey().equalsIgnoreCase("Authorization") ||
+                        h.getKey().equalsIgnoreCase("Content-Type") ||
+                        h.getKey().equalsIgnoreCase("Accept")
+                )
+                .forEach(header -> setMeta(header.getKey(), header.getValue()));
         return this;
     }
 
@@ -106,7 +124,6 @@ public class PayloadObject {
     @Override
     public String toString() {
         return "PayloadObject{" +
-                "type='" + type + '\'' +
                 ", reference_id='" + meta.get("flow_id") + '\'' +
                 ", payload='" + payload + '\'' +
                 ", meta=" + meta +

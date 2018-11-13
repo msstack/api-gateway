@@ -17,7 +17,7 @@ public class KafkaProducerService {
         properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
-        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "139.59.77.98:9092");
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "cloud.grydtech.com:9092");
         properties.put(ProducerConfig.ACKS_CONFIG, "all");
         properties.put(ProducerConfig.RETRIES_CONFIG, 5);
 

@@ -1,4 +1,3 @@
-GET /orders orderservice.getorder entity=order validate=true
-POST /orders orderservice.putorder entity=order validate=true
-DELETE /orders orderservice.deleteorder entity=order validate=true
-GET /create/user userservice.create entity=order validate=false
+GET /orders tag=getorderrequest entity=order validate=true
+POST /orders tag=createorderrequest entity=order validate=true
+DELETE /orders tag=deleteorderrequest entity=order validate=true

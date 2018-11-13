@@ -20,6 +20,13 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
 
+    private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+        FullHttpResponse response = new DefaultFullHttpResponse(
+                HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status + "\r\n", CharsetUtil.UTF_8));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
+        // Close the connection as soon as the error message is sent.
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
@@ -32,48 +39,38 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                 String entityID = (decoder.parameters().get("id") == null) ? "" : decoder.parameters().get("id").get(0);
 
                 if (!entityID.equals("")) {
-                    PayloadObject payloadObject = new PayloadObject(msg.method(), decoder.path());
+                    PayloadObject payloadObject = new PayloadObject(msg.method());
                     payloadObject.setEntity_id(entityID);
 
-                    System.out.println("payload created");
+                    Optional<String> params = JsonSerializer.toJsonString(decoder.parameters());
 
-                    payloadObject.setParams(decoder.parameters())
-                            .setUri(decoder.uri())
-                            .setPayload(msg.content().toString(CharsetUtil.UTF_8))
-                            .setHeaders(msg.headers().entries());
+                    payloadObject.setPayload(params.get()).setHeaders(msg.headers().entries());
 
                     Optional<String[]> matchingUrlDef;
 
                     matchingUrlDef = HttpServerRunner.urls.stream().filter(url ->
                             (url[0].equals(msg.method().name()) && url[1].equals(decoder.path()))).findFirst();
                     matchingUrlDef.ifPresent(matchingUrl -> {
-                                String[] serviceMethod = matchingUrlDef.get()[2].split("\\.");
-                                payloadObject.setMicroservice(serviceMethod[0]);
-                                payloadObject.setHandler(serviceMethod[1]);
+                                payloadObject.setTag(matchingUrl[2].split("=")[1]);
                                 payloadObject.setEntity(matchingUrlDef.get()[3].split("=")[1]);
-                                payloadObject.setValidation(matchingUrlDef.get()[4].split("=")[1]);
                             }
                     );
 
-                    System.out.println("url matched");
+//                    Optional<String> requestMessage = JsonSerializer.toJsonString(payloadObject);
 
-                    Optional<String> requestMessage = JsonSerializer.toJsonString(payloadObject);
+                    //ToDo complete msg
+                    String requestMessage = getRequestMessage(payloadObject);
+                    System.out.println(requestMessage);
+                    KafkaProducerService.getInstance().publish(
+                            /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
+                            /*ENTITY_ID*/String.valueOf(payloadObject.getMeta().get("entity_id")),
+                            /*REQUEST_MSG*/requestMessage);
+                    System.out.println("MSG sent to KAFKA producer");
 
-                    System.out.println("req json serialized");
+                    //Cache the QUERY along with the Ref_ID
+                    RequestCache.getInstance().saveQueryRequest(payloadObject.getMeta().get("flow_id").toString(), ctx);
 
-                    if (requestMessage.isPresent()) {
-                        System.out.println(requestMessage.get());
-                        //ToDo send to the Kafka Queue
-                        KafkaProducerService.getInstance().publish(
-                                /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
-                                /*ENTITY_ID*/String.valueOf(payloadObject.getEntity_id()),
-                                /*REQUEST_MSG*/requestMessage.get());
-                        System.out.println("MSG sent to KAFKA producer");
-
-                        //Cache the QUERY along with the Ref_ID
-                        RequestCache.getInstance().saveQueryRequest(payloadObject.getMeta().get("flow_id").toString(), ctx);
-                    }
-                }else {
+                } else {
                     sendInvalidReqResponse(ctx);
                     System.out.println("INVALID SENT");
                 }
@@ -85,6 +82,25 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String getRequestMessage(PayloadObject obj) {
+
+        StringBuilder str = new StringBuilder();
+
+        str.append(obj.getMeta().get("entity"));
+        str.append("_");
+        str.append(obj.getTag());
+
+        str.append("::");
+        Optional<String> meta = JsonSerializer.toJsonString(obj.getMeta());
+        str.append(meta.get());
+
+        str.append("::");
+        str.append(obj.getPayload());
+
+        return str.toString();
+
     }
 
     private void sendInvalidReqResponse(ChannelHandlerContext ctx) {
@@ -106,13 +122,6 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         if (ctx.channel().isActive()) {
             sendError(ctx, INTERNAL_SERVER_ERROR);
         }
-    }
-    private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
-        FullHttpResponse response = new DefaultFullHttpResponse(
-                HTTP_1_1, status, Unpooled.copiedBuffer("Failure: " + status + "\r\n", CharsetUtil.UTF_8));
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
-        // Close the connection as soon as the error message is sent.
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

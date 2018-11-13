@@ -1,7 +1,6 @@
 package gateway.command.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import gateway.cache.RequestCache;
 import gateway.kafka.KafkaProducerService;
 import gateway.server.HttpServerRunner;
 import gateway.util.JsonSerializer;
@@ -46,14 +45,12 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 Map<String, List<String>> params = decoder.parameters();
                 List<Map.Entry<String, String>> headers = msg.headers().entries();
 
-                PayloadObject payloadObject = new PayloadObject(httpMethod, path);
+                PayloadObject payloadObject = new PayloadObject(httpMethod);
                 payloadObject.setEntity_id(msgJson.get("id").asText());
 
 //                RequestCache.getInstance().saveCommandRequest(payloadObject.getFlow_id(),ctx);
 
-                payloadObject.setParams(params)
-                        .setUri(uri)
-                        .setPayload(msgContent)
+                payloadObject.setPayload(msgContent)
                         .setHeaders(headers);
 
                 Optional<String[]> matchingUrlDef;
@@ -61,29 +58,40 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 matchingUrlDef = HttpServerRunner.urls.stream().filter(url ->
                         (url[0].equals(httpMethod.name()) && url[1].equals(path))).findFirst();
                 matchingUrlDef.ifPresent(matchingUrl -> {
-                            String[] serviceMethod = matchingUrlDef.get()[2].split("\\.");
-                            payloadObject.setMicroservice(serviceMethod[0]);
-                            payloadObject.setHandler(serviceMethod[1]);
+                            payloadObject.setTag(matchingUrl[2].split("=")[1]);
                             payloadObject.setEntity(matchingUrlDef.get()[3].split("=")[1]);
-                            payloadObject.setValidation(matchingUrlDef.get()[4].split("=")[1]);
                         }
                 );
 
-                Optional<String> requestMessage = JsonSerializer.toJsonString(payloadObject);
-                if (requestMessage.isPresent()) {
-                    System.out.println(requestMessage.get());
-
-                    //ToDo send to the Kafka Queue
-
-                    KafkaProducerService.getInstance().publish(
-                            /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
-                            /*ENTITY_ID*/String.valueOf(payloadObject.getEntity_id()),
-                            /*REQUEST_MSG*/requestMessage.get());
-                }
+                String requestMessage = getRequestMessage(payloadObject);
+                System.out.println(requestMessage);
+                KafkaProducerService.getInstance().publish(
+                        /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
+                        /*ENTITY_ID*/String.valueOf(payloadObject.getMeta().get("entity_id")),
+                        /*REQUEST_MSG*/requestMessage);
+//                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private String getRequestMessage(PayloadObject obj) {
+
+        StringBuilder strBuilder = new StringBuilder();
+
+        strBuilder.append(obj.getMeta().get("entity"));
+        strBuilder.append("_");
+        strBuilder.append(obj.getTag());
+
+        strBuilder.append("::");
+        Optional<String> meta = JsonSerializer.toJsonString(obj.getMeta());
+        strBuilder.append(meta.get());
+
+        strBuilder.append("::");
+        strBuilder.append(obj.getPayload());
+
+        return strBuilder.toString();
     }
 
     @Override
