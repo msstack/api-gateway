@@ -46,7 +46,7 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
                 List<Map.Entry<String, String>> headers = msg.headers().entries();
 
                 PayloadObject payloadObject = new PayloadObject(httpMethod);
-                payloadObject.setEntity_id(msgJson.get("id").asText());
+//                payloadObject.setEntity_id(msgJson.get("id").asText());
 
 //                RequestCache.getInstance().saveCommandRequest(payloadObject.getFlow_id(),ctx);
 

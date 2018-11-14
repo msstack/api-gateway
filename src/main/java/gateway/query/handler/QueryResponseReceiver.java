@@ -29,12 +29,12 @@ public class QueryResponseReceiver implements QueryOnCompleteListener {
     @Override
     public void onComplete(ChannelHandlerContext ctx, String queryResponse) {
 
-        System.out.println("MATCHED response");
+//        System.out.println("MATCHED response");
         ByteBuf content = Unpooled.copiedBuffer(queryResponse, CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.OK, content);
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, queryResponse.length());
-        System.out.println("Writing to ctx");
+//        System.out.println("Writing to ctx");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
 
     }

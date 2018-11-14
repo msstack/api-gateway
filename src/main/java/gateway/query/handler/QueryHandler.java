@@ -40,7 +40,7 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
                 if (!entityID.equals("")) {
                     PayloadObject payloadObject = new PayloadObject(msg.method());
-                    payloadObject.setEntity_id(entityID);
+//                    payloadObject.setEntity_id(entityID);
 
                     Optional<String> params = JsonSerializer.toJsonString(decoder.parameters());
 
@@ -65,7 +65,7 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                             /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
                             /*ENTITY_ID*/String.valueOf(payloadObject.getMeta().get("entity_id")),
                             /*REQUEST_MSG*/requestMessage);
-                    System.out.println("MSG sent to KAFKA producer");
+//                    System.out.println("MSG sent to KAFKA producer");
 
                     //Cache the QUERY along with the Ref_ID
                     RequestCache.getInstance().saveQueryRequest(payloadObject.getMeta().get("flowId").toString(), ctx);
