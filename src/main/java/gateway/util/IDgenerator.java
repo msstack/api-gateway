@@ -1,5 +1,7 @@
 package gateway.util;
 
+import java.util.UUID;
+
 public class IDgenerator {
 
     private static IDgenerator iDgenerator = null;
@@ -16,9 +18,13 @@ public class IDgenerator {
         return iDgenerator;
     }
 
-    public String getUniqueID() {
+    public String getSequentialID() {
         c = c + 1;
         return String.valueOf(c);
+    }
+
+    public String getUniqueID() {
+        return UUID.randomUUID().toString();
     }
 
 }

@@ -1,5 +1,7 @@
 package gateway.util;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.util.HashMap;
@@ -44,7 +46,7 @@ public class PayloadObject {
         } else {
             this.meta.put("type", RequestType.COMMAND.toString());
         }
-        this.meta.put("flow_id", reference_id);
+        this.meta.put("flowId", reference_id);
     }
 
 
@@ -67,7 +69,17 @@ public class PayloadObject {
     }
 
     public PayloadObject setPayload(String payload) {
-        this.payload = payload;
+
+        ObjectNode jsonPayload = (ObjectNode) JsonSerializer.toJsonObject(payload);
+        jsonPayload.remove("id");
+
+        ArrayNode str = (ArrayNode)jsonPayload.get("orderId");
+
+        if(str!=null){
+            jsonPayload.put("orderId",str.get(0).asText());
+        }
+
+        this.payload = jsonPayload.toString();
         return this;
     }
 
@@ -124,7 +136,7 @@ public class PayloadObject {
     @Override
     public String toString() {
         return "PayloadObject{" +
-                ", reference_id='" + meta.get("flow_id") + '\'' +
+                ", reference_id='" + meta.get("flowId") + '\'' +
                 ", payload='" + payload + '\'' +
                 ", meta=" + meta +
                 '}';

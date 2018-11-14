@@ -50,11 +50,12 @@ public class KafkaConsumerService {
                         record.offset());
 
                 Optional<ChannelHandlerContext> context;
-                JsonNode response = JsonSerializer.toJsonObject(record.value());
-                context = RequestCache.getInstance().getQueryRequestor(response.get("flow_id").asText());
+                String[] consumerResponse = record.value().split("::");
+                JsonNode response = JsonSerializer.toJsonObject(consumerResponse[1]);
+                context = RequestCache.getInstance().getQueryRequestor(response.get("flowId").asText());
                 //Record is a RESPONSE for a QUERY
                 context.ifPresent(channelHandlerContext ->
-                        queryOnCompleteListener.onComplete(channelHandlerContext, record.value()));
+                        queryOnCompleteListener.onComplete(channelHandlerContext, consumerResponse[2]));
 
             });
 

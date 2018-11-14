@@ -68,7 +68,7 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     System.out.println("MSG sent to KAFKA producer");
 
                     //Cache the QUERY along with the Ref_ID
-                    RequestCache.getInstance().saveQueryRequest(payloadObject.getMeta().get("flow_id").toString(), ctx);
+                    RequestCache.getInstance().saveQueryRequest(payloadObject.getMeta().get("flowId").toString(), ctx);
 
                 } else {
                     sendInvalidReqResponse(ctx);
