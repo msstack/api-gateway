@@ -1,6 +1,7 @@
 package gateway.server;
 
 import gateway.kafka.KafkaConsumerService;
+import gateway.kafka.KafkaProducerService;
 import gateway.query.handler.QueryResponseReceiver;
 import gateway.util.ReadAPIdoc;
 import io.netty.bootstrap.ServerBootstrap;
@@ -36,6 +37,7 @@ public class HttpServerRunner {
         int port = 8080;
 
         KafkaConsumerService kafkaConsumerService = new KafkaConsumerService();
+        KafkaProducerService.getInstance().start();
         kafkaConsumerService.setQueryOnCompleteListener(QueryResponseReceiver.getInstance());
 //        kafkaConsumerService.start();
 

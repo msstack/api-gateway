@@ -73,10 +73,12 @@ public class PayloadObject {
         ObjectNode jsonPayload = (ObjectNode) JsonSerializer.toJsonObject(payload);
         jsonPayload.remove("id");
 
-        ArrayNode str = (ArrayNode)jsonPayload.get("orderId");
+        if (meta.get("type").equals(RequestType.QUERY.toString())) {
+            ArrayNode str = (ArrayNode) jsonPayload.get("orderId");
 
-        if(str!=null){
-            jsonPayload.put("orderId",str.get(0).asText());
+            if (str != null) {
+                jsonPayload.put("orderId", str.get(0).asText());
+            }
         }
 
         this.payload = jsonPayload.toString();

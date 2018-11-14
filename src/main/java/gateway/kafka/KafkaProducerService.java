@@ -7,6 +7,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class KafkaProducerService {
     private static KafkaProducerService kafkaProducerService = null;
@@ -31,6 +33,12 @@ public class KafkaProducerService {
         return kafkaProducerService;
     }
 
+    public void start() {
+        Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            this.kafkaProducer.flush();
+        }, 100, 100, TimeUnit.MILLISECONDS);
+    }
+
     public void publish(String topic, String eventKey, String eventValue) {
 //        POST- json has ID field
 //        GET - query has :id
@@ -39,7 +47,7 @@ public class KafkaProducerService {
 //        topic = entity type Ex:-student
 //        value = payload_Msg
         this.kafkaProducer.send(new ProducerRecord<>(topic, eventKey, eventValue));
-        this.kafkaProducer.flush();
+//        this.kafkaProducer.flush();
     }
 
 }
