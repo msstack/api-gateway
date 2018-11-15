@@ -63,7 +63,7 @@ public class QueryHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
                     System.out.println(requestMessage);
                     KafkaProducerService.getInstance().publish(
                             /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
-                            /*ENTITY_ID*/String.valueOf(payloadObject.getMeta().get("entity_id")),
+                            /*ENTITY_ID*/String.valueOf(decoder.parameters().get("orderId")),
                             /*REQUEST_MSG*/requestMessage);
 //                    System.out.println("MSG sent to KAFKA producer");
 

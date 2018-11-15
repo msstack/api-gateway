@@ -33,7 +33,7 @@ public class HttpServerRunner {
 
     public static void main(String[] args) throws Exception {
 
-        urls = ReadAPIdoc.getInstance().getEndPoints("/home/gavindya/Desktop/FYP/apigateway/src/main/resources/input.txt");
+        urls = ReadAPIdoc.getInstance().getEndPoints("input.txt");
         int port = 8080;
 
         KafkaConsumerService kafkaConsumerService = new KafkaConsumerService();

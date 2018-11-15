@@ -65,9 +65,10 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 
                 String requestMessage = getRequestMessage(payloadObject);
                 System.out.println(requestMessage);
+
                 KafkaProducerService.getInstance().publish(
                         /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
-                        /*ENTITY_ID*/String.valueOf(payloadObject.getMeta().get("entity_id")),
+                        /*ENTITY_ID*/String.valueOf(msgJson.get("orderId")), //ToDo: hardcoded
                         /*REQUEST_MSG*/requestMessage);
 //                }
             }

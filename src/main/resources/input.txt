@@ -1,3 +1,0 @@
-GET /orders tag=getorderrequest entity=orderentity validate=true
-POST /orders tag=ordercreaterequest entity=orderentity validate=true
-DELETE /orders tag=deleteorderrequest entity=orderentity validate=true
