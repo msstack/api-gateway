@@ -68,7 +68,7 @@ public class PayloadHandler extends SimpleChannelInboundHandler<FullHttpRequest>
 
                 KafkaProducerService.getInstance().publish(
                         /*TOPIC*/String.valueOf(payloadObject.getMeta().get("entity")),
-                        /*ENTITY_ID*/String.valueOf(msgJson.get("orderId")), //ToDo: hardcoded
+                        /*ENTITY_ID*/msgJson.get("orderId").asText(), //ToDo: hardcoded
                         /*REQUEST_MSG*/requestMessage);
 //                }
             }
