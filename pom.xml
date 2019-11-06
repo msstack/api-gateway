@@ -22,6 +22,8 @@
 
     <properties>
         <kafka.version>1.0.1</kafka.version>
+        <netty.version>4.1.42.Final</netty.version>
+        <jackson.version>2.9.10.1</jackson.version>
     </properties>
 
     <dependencies>
@@ -42,19 +44,19 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.42.Final</version>
+            <version>${netty.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>2.9.6</version>
+            <version>${jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.9.6</version>
+            <version>${jackson.version}</version>
         </dependency>
 
     </dependencies>
