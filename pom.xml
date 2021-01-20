@@ -23,7 +23,7 @@
     <properties>
         <kafka.version>1.0.1</kafka.version>
         <netty.version>4.1.42.Final</netty.version>
-        <jackson.version>2.9.10.1</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
     </properties>
 
     <dependencies>
